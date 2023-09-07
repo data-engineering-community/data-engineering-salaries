@@ -8,9 +8,31 @@ def load_data(sheets_url):
     csv_url = sheets_url.replace("/edit#gid=", "/export?format=csv&gid=")
     return pd.read_csv(csv_url)
 
-df = load_data(st.secrets["public_gsheets_url"])
+salaries_df = load_data(st.secrets["public_gsheets_url"])
 
-df.drop(columns=['Submission ID', 'Respondent ID'], inplace=True)
+salaries_df.drop(columns=['Submission ID', 'Respondent ID'], inplace=True)
+
+# Initialize session state variables
+# https://docs.streamlit.io/library/advanced-features/session-state#initialization
+session_state_variables = ['filter_job_title']
+for key in session_state_variables:
+    if key not in st.session_state:
+        st.session_state[key] = ''
+
+job_title_list = [ # Empty string = no filter
+    "", "Junior Data Engineer", "Data Engineer", "Senior Data Engineer", "Lead Data Engineer",
+    "Staff Data Engineer", "Principal Data Engineer", *list(salaries_df['Other'].unique())
+]
+
+# Apply filters if they exist
+if st.session_state.filter_job_title:
+    salaries_df = salaries_df[
+        (salaries_df['Current Job Title'] == st.session_state.filter_job_title) | (salaries_df['Other'] == st.session_state.filter_job_title)
+    ] 
 
 # Print results.
-st.dataframe(data=df)
+st.dataframe(data=salaries_df, hide_index=True)
+
+with st.sidebar:
+    # Filters
+    st.selectbox("Job Title", options=job_title_list, key='filter_job_title')
