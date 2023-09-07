@@ -10,5 +10,7 @@ def load_data(sheets_url):
 
 df = load_data(st.secrets["public_gsheets_url"])
 
+df.drop(columns=['Submission ID', 'Respondent ID'], inplace=True)
+
 # Print results.
 st.dataframe(data=df)
