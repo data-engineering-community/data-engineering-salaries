@@ -6,6 +6,8 @@ Notes:
 
 - This is a community project and it's early in development - contributions are welcome!
 - Data from historical surveys is not yet available but we do plan to backfill it.
+- [Streamlit Docs](https://docs.streamlit.io/)
+- [Raw data](https://docs.google.com/spreadsheets/d/1GuEPkwjdICgJ31Ji3iUoarirZNDbPxQj_kf7fd4h4Ro/edit#gid=0)
 
 ## Requirements
 
@@ -14,7 +16,7 @@ Notes:
 ## Build
 
 ```bash
-docker build -t salary_transparency .
+docker build -t data_engineering_salaries .
 ```
 
 ## Run
@@ -24,7 +26,7 @@ docker run \
 -p 8501:8501 \
 -it \
 --mount type=bind,source="$(pwd)",target=/app \
-salary_transparency
+data_engineering_salaries
 ```
 
 In your browser, Go to `localhost:8501`
