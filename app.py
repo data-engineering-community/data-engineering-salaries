@@ -1,6 +1,17 @@
 import pandas as pd
 import streamlit as st
 
+
+st.set_page_config(
+    page_title='Data Engineering Salaries',
+    page_icon=':gear:',
+    layout='wide',
+    menu_items={
+        'Report a bug': "https://github.com/data-engineering-community/data-engineering-salaries/issues/new"
+        }
+    )
+
+
 # Read in data from the Google Sheet.
 # Uses st.cache_data to only rerun when the query changes or after 10 min.
 # @st.cache_data(ttl=600)
@@ -36,3 +47,9 @@ st.dataframe(data=salaries_df, hide_index=True)
 with st.sidebar:
     # Filters
     st.selectbox("Job Title", options=job_title_list, key='filter_job_title')
+
+hide_footer_style = """
+<style>
+footer {visibility: hidden;}    
+"""
+st.markdown(hide_footer_style, unsafe_allow_html=True)
