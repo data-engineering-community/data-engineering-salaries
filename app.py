@@ -3,11 +3,11 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title='Data Engineering Salaries',
-    page_icon=':gear:',
-    layout='wide',
+    page_title="Data Engineering Salaries",
+    page_icon=":gear:",
+    layout="wide",
     menu_items={
-        'Report a bug': "https://github.com/data-engineering-community/data-engineering-salaries/issues/new"
+        "Report a bug": "https://github.com/data-engineering-community/data-engineering-salaries/issues/new"
         }
     )
 
@@ -81,9 +81,18 @@ if st.session_state.filter_currency:
     ]
 
 # Print results.
+st.header("Data Engineering Salaries", divider="rainbow")
+col1, col2, col3, col4 = st.columns(4)
+col1.metric(label="Median Base Salary", value="{:0,.0f} {currency}".format(salaries_df["Base Salary"].median(), currency=st.session_state.filter_currency))
+col2.metric(label="Median Bonus/Equity Amount", value="{:0,.0f} {currency}".format(salaries_df["Bonuses/Equity amount"].median(), currency=st.session_state.filter_currency))
+col3.metric(label="Median Years of Experience", value=salaries_df["Years of Experience"].median())
 st.dataframe(data=salaries_df, hide_index=True)
+st.caption(f"Record count: {salaries_df.shape[0]}")
 
 with st.sidebar:
+    st.image("https://raw.githubusercontent.com/data-engineering-community/data-engineering-wiki/main/Assets/logo.svg", width=100)
+    st.header("Filters", divider="gray")
+
     # Filters
     st.selectbox("Job Title", options=job_title_list, key="filter_job_title")
     st.selectbox(
