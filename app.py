@@ -23,6 +23,7 @@ def load_data(sheets_url):
 salaries_df = load_data(st.secrets["public_gsheets_url"])
 salaries_df.drop(columns=["Submission ID", "Respondent ID"], inplace=True)
 salaries_df.dropna(how="all", inplace=True)
+salaries_df.sort_values(by=["Submitted at"], ascending=False, inplace=True)
 min_yoe = int(salaries_df["Years of Experience"].min())
 max_yoe = int(salaries_df["Years of Experience"].max())
 
@@ -38,6 +39,8 @@ for key in session_state_variables:
         st.session_state[key] = ""
 if "filter_yoe" not in st.session_state:
     st.session_state["filter_yoe"] = (min_yoe, max_yoe)
+if "filter_currency" not in st.session_state:
+    st.session_state["filter_currency"] = "USD"
 
 # Create filter lists
 job_title_list = [  # Empty string = no filter
@@ -52,6 +55,7 @@ job_title_list = [  # Empty string = no filter
 ]
 work_arrangement_list = ["", *list(salaries_df["Work Arrangement"].unique())]
 industry_list = ["", *sorted(list(salaries_df["Industry"].fillna("Unknown").unique()))]
+currency_list = [*sorted(list(salaries_df["Currency"].unique()))]
 
 # Apply filters if they exist
 if st.session_state.filter_job_title:
@@ -71,6 +75,10 @@ if st.session_state.filter_industry:
     salaries_df = salaries_df.loc[
         salaries_df["Industry"] == st.session_state.filter_industry
     ]
+if st.session_state.filter_currency:
+    salaries_df = salaries_df.loc[
+        salaries_df["Currency"] == st.session_state.filter_currency
+    ]
 
 # Print results.
 st.dataframe(data=salaries_df, hide_index=True)
@@ -89,6 +97,7 @@ with st.sidebar:
         step=1,
         key="filter_yoe",
     )
+    st.selectbox("Currency", options=currency_list, key="filter_currency")
 
 hide_footer_style = """
 <style>
