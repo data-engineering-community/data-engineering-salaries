@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
 
 st.set_page_config(
@@ -82,10 +83,22 @@ if st.session_state.filter_currency:
 
 # Print results.
 st.header("Data Engineering Salaries", divider="rainbow")
-col1, col2, col3, col4 = st.columns(4)
-col1.metric(label="Median Base Salary", value="{:0,.0f} {currency}".format(salaries_df["Base Salary"].median(), currency=st.session_state.filter_currency))
-col2.metric(label="Median Bonus/Equity Amount", value="{:0,.0f} {currency}".format(salaries_df["Bonuses/Equity amount"].median(), currency=st.session_state.filter_currency))
-col3.metric(label="Median Years of Experience", value=salaries_df["Years of Experience"].median())
+
+col1, col2 = st.columns(spec=[0.7, 0.3]) # Represents 2 columns that take 70% and 30% of the screen width respectively
+
+with col1:
+    salary_histogram = px.histogram(
+        data_frame=salaries_df,
+        x="Base Salary",
+        labels={"Base Salary": f"Base Salary ({st.session_state.filter_currency})"}
+        )
+    st.plotly_chart(salary_histogram, use_container_width=True)
+
+with col2:
+    st.metric(label="Median Base Salary", value="{:0,.0f} {currency}".format(salaries_df["Base Salary"].median(), currency=st.session_state.filter_currency))
+    st.metric(label="Median Bonus/Equity Amount", value="{:0,.0f} {currency}".format(salaries_df["Bonuses/Equity amount"].median(), currency=st.session_state.filter_currency))
+    st.metric(label="Median Years of Experience", value=salaries_df["Years of Experience"].median())
+
 st.dataframe(data=salaries_df, hide_index=True)
 st.caption(f"Record count: {salaries_df.shape[0]}")
 
