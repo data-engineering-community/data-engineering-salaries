@@ -13,20 +13,29 @@ Notes:
 
 - Docker
 
+## Setup
+
+- Download or clone the repository.
+- Rename the example.secrets.toml (inside .streamlit folder) file to secrets.toml
+- Open the **Raw Data** sheet, copy the full URL and paste it to the *secrets.toml* **public_gsheets_url** variable.
+
 ## Build
 
 ```bash
-docker build -t data_engineering_salaries .
+docker compose build
 ```
 
 ## Run
 
+Run the streamlit container in detached mode
 ```bash
-docker run \
--p 8501:8501 \
--it \
---mount type=bind,source="$(pwd)",target=/app \
-data_engineering_salaries
+docker compose up -d
+```
+
+Start/Stop docker container
+```bash
+docker compose start
+docker compose stop
 ```
 
 In your browser, Go to `localhost:8501`
