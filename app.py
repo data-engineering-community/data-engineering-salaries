@@ -47,8 +47,6 @@ if "filter_yoe" not in st.session_state:
     st.session_state["filter_yoe"] = (min_yoe, max_yoe)
 if "filter_currency" not in st.session_state:
     st.session_state["filter_currency"] = "USD"
-if "filter_date_range" not in st.session_state:
-    st.session_state["filter_date_range"] = (one_year_ago, today)
 
 # Create filter lists
 job_title_list = [  # Empty string = no filter
@@ -87,7 +85,11 @@ if st.session_state.filter_currency:
     salaries_df = salaries_df.loc[
         salaries_df["Currency"] == st.session_state.filter_currency
     ]
-if st.session_state.filter_date_range and len(st.session_state.filter_date_range) == 2:
+if "filter_date_range" not in st.session_state:
+    salaries_df = salaries_df.loc[
+        salaries_df["Submitted at"].between(one_year_ago, today)
+    ]
+elif st.session_state.filter_date_range and len(st.session_state.filter_date_range) == 2:
     salaries_df = salaries_df.loc[
         salaries_df["Submitted at"].between(*st.session_state.filter_date_range)
     ]
