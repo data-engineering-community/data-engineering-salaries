@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -24,9 +26,12 @@ def load_data(sheets_url):
 salaries_df = load_data(st.secrets["public_gsheets_url"])
 salaries_df.drop(columns=["Submission ID", "Respondent ID"], inplace=True)
 salaries_df.dropna(how="all", inplace=True)
+salaries_df['Submitted at'] = pd.to_datetime(salaries_df["Submitted at"]).dt.date
 salaries_df.sort_values(by=["Submitted at"], ascending=False, inplace=True)
 min_yoe = int(salaries_df["Years of Experience"].min())
 max_yoe = int(salaries_df["Years of Experience"].max())
+today = datetime.date.today()
+one_year_ago = datetime.date.today() - datetime.timedelta(days=365)
 
 # Initialize session state variables
 # https://docs.streamlit.io/library/advanced-features/session-state#initialization
@@ -42,6 +47,8 @@ if "filter_yoe" not in st.session_state:
     st.session_state["filter_yoe"] = (min_yoe, max_yoe)
 if "filter_currency" not in st.session_state:
     st.session_state["filter_currency"] = "USD"
+if "filter_date_range" not in st.session_state:
+    st.session_state["filter_date_range"] = (one_year_ago, today)
 
 # Create filter lists
 job_title_list = [  # Empty string = no filter
@@ -80,6 +87,10 @@ if st.session_state.filter_currency:
     salaries_df = salaries_df.loc[
         salaries_df["Currency"] == st.session_state.filter_currency
     ]
+if st.session_state.filter_date_range and len(st.session_state.filter_date_range) == 2:
+    salaries_df = salaries_df.loc[
+        salaries_df["Submitted at"].between(*st.session_state.filter_date_range)
+    ]
 
 # Print results.
 st.header("Data Engineering Salaries", divider="rainbow")
@@ -107,6 +118,13 @@ with st.sidebar:
     st.header("Filters", divider="gray")
 
     # Filters
+    st.date_input(
+        label="Date Range",
+        value=(one_year_ago, today),
+        max_value=datetime.date.today(),
+        format="MM/DD/YYYY",
+        key="filter_date_range"
+    )
     st.selectbox("Job Title", options=job_title_list, key="filter_job_title")
     st.selectbox(
         "Work Arrangement", options=work_arrangement_list, key="filter_work_arrangement"
