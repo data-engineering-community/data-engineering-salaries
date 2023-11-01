@@ -1,2 +1,5 @@
 secrets.toml
 venv/
+.ipynb_checkpoints/
+.DS_Store
+__pycache__
