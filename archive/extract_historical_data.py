@@ -13,9 +13,9 @@ json_files = []
 final_df = pd.DataFrame()
 
 #list all json in input dir
-for file in os.listdir(input_dir):
-    if file.endswith(".json"):
-        json_files.append(os.path.join(input_dir, file))
+import glob
+
+json_files = glob.glob(os.path.join(input_dir, '*.json'))
 
 for file in json_files:
     #open & load json
