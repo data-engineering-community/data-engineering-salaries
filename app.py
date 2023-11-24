@@ -24,7 +24,7 @@ def load_data(sheets_url):
 
 
 salaries_df = load_data(st.secrets["public_gsheets_url"])
-salaries_df = salaries_df[["Submitted at", "Current Job Title", "Other", "Years of Experience", "Location", "Work Arrangement",
+salaries_df = salaries_df[["Submitted at", "Current Job Title", "Other", "Years of Experience", "City", "State", "Country", "Work Arrangement",
                            "Base Salary", "Currency", "Bonuses/Equity amount", "Industry", "Tech Stack", "Career plans in the next 3 months?"]]
 salaries_df.dropna(how="all", inplace=True)
 salaries_df['Submitted at'] = pd.to_datetime(
@@ -41,6 +41,9 @@ session_state_variables = [
     "filter_job_title",
     "filter_work_arrangement",
     "filter_industry",
+    "filter_city",
+    "filter_state",
+    "filter_country",
 ]
 for key in session_state_variables:
     if key not in st.session_state:
@@ -65,6 +68,12 @@ work_arrangement_list = ["", *list(salaries_df["Work Arrangement"].unique())]
 industry_list = [
     "", *sorted(list(salaries_df["Industry"].fillna("Unknown").unique()))]
 currency_list = [*sorted(list(salaries_df["Currency"].unique()))]
+city_list = [
+    "", *sorted(list(salaries_df["City"].fillna("Unknown").unique()))]
+state_list = [
+    "", *sorted(list(salaries_df["State"].fillna("Unknown").unique()))]
+country_list = [
+    "", *sorted(list(salaries_df["Country"].fillna("Unknown").unique()))]
 
 # Apply filters if they exist
 if st.session_state.filter_job_title:
@@ -88,6 +97,18 @@ if st.session_state.filter_industry:
 if st.session_state.filter_currency:
     salaries_df = salaries_df.loc[
         salaries_df["Currency"] == st.session_state.filter_currency
+    ]
+if st.session_state.filter_city:
+    salaries_df = salaries_df.loc[
+        salaries_df["City"] == st.session_state.filter_city
+    ]
+if st.session_state.filter_state:
+    salaries_df = salaries_df.loc[
+        salaries_df["State"] == st.session_state.filter_state
+    ]
+if st.session_state.filter_country:
+    salaries_df = salaries_df.loc[
+        salaries_df["Country"] == st.session_state.filter_country
     ]
 if "filter_date_range" not in st.session_state:
     salaries_df = salaries_df.loc[
@@ -150,6 +171,9 @@ with st.sidebar:
         key="filter_yoe",
     )
     st.selectbox("Currency", options=currency_list, key="filter_currency")
+    st.selectbox("City", options=city_list, key="filter_city")
+    st.selectbox("State", options=state_list, key="filter_state")
+    st.selectbox("Country", options=country_list, key="filter_country")
 
 hide_footer_style = """
 <style>
