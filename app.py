@@ -11,8 +11,8 @@ st.set_page_config(
     layout="wide",
     menu_items={
         "Report a bug": "https://github.com/data-engineering-community/data-engineering-salaries/issues/new"
-        }
-    )
+    }
+)
 
 
 # Read in data from the Google Sheet.
@@ -24,9 +24,11 @@ def load_data(sheets_url):
 
 
 salaries_df = load_data(st.secrets["public_gsheets_url"])
-salaries_df.drop(columns=["Submission ID", "Respondent ID"], inplace=True)
+salaries_df = salaries_df[["Submitted at", "Current Job Title", "Other", "Years of Experience", "Location", "Work Arrangement",
+                           "Base Salary", "Currency", "Bonuses/Equity amount", "Industry", "Tech Stack", "Career plans in the next 3 months?"]]
 salaries_df.dropna(how="all", inplace=True)
-salaries_df['Submitted at'] = pd.to_datetime(salaries_df["Submitted at"]).dt.date
+salaries_df['Submitted at'] = pd.to_datetime(
+    salaries_df["Submitted at"]).dt.date
 salaries_df.sort_values(by=["Submitted at"], ascending=False, inplace=True)
 min_yoe = int(salaries_df["Years of Experience"].min())
 max_yoe = int(salaries_df["Years of Experience"].max())
@@ -60,7 +62,8 @@ job_title_list = [  # Empty string = no filter
     *list(salaries_df["Other"].unique()),
 ]
 work_arrangement_list = ["", *list(salaries_df["Work Arrangement"].unique())]
-industry_list = ["", *sorted(list(salaries_df["Industry"].fillna("Unknown").unique()))]
+industry_list = [
+    "", *sorted(list(salaries_df["Industry"].fillna("Unknown").unique()))]
 currency_list = [*sorted(list(salaries_df["Currency"].unique()))]
 
 # Apply filters if they exist
@@ -71,7 +74,8 @@ if st.session_state.filter_job_title:
     ]
 if st.session_state.filter_yoe:
     salaries_df = salaries_df.loc[
-        salaries_df["Years of Experience"].between(*st.session_state.filter_yoe)
+        salaries_df["Years of Experience"].between(
+            *st.session_state.filter_yoe)
     ]
 if st.session_state.filter_work_arrangement:
     salaries_df = salaries_df.loc[
@@ -91,26 +95,32 @@ if "filter_date_range" not in st.session_state:
     ]
 elif st.session_state.filter_date_range and len(st.session_state.filter_date_range) == 2:
     salaries_df = salaries_df.loc[
-        salaries_df["Submitted at"].between(*st.session_state.filter_date_range)
+        salaries_df["Submitted at"].between(
+            *st.session_state.filter_date_range)
     ]
 
 # Print results.
 st.header("Data Engineering Salaries", divider="rainbow")
 
-col1, col2 = st.columns(spec=[0.7, 0.3]) # Represents 2 columns that take 70% and 30% of the screen width respectively
+# Represents 2 columns that take 70% and 30% of the screen width respectively
+col1, col2 = st.columns(spec=[0.7, 0.3])
 
 with col1:
     salary_histogram = px.histogram(
         data_frame=salaries_df,
         x="Base Salary",
-        labels={"Base Salary": f"Base Salary ({st.session_state.filter_currency})"}
-        )
+        labels={
+            "Base Salary": f"Base Salary ({st.session_state.filter_currency})"}
+    )
     st.plotly_chart(salary_histogram, use_container_width=True)
 
 with col2:
-    st.metric(label="Median Base Salary", value="{:0,.0f} {currency}".format(salaries_df["Base Salary"].median(), currency=st.session_state.filter_currency))
-    st.metric(label="Median Bonus/Equity Amount", value="{:0,.0f} {currency}".format(salaries_df["Bonuses/Equity amount"].median(), currency=st.session_state.filter_currency))
-    st.metric(label="Median Years of Experience", value=salaries_df["Years of Experience"].median())
+    st.metric(label="Median Base Salary", value="{:0,.0f} {currency}".format(
+        salaries_df["Base Salary"].median(), currency=st.session_state.filter_currency))
+    st.metric(label="Median Bonus/Equity Amount", value="{:0,.0f} {currency}".format(
+        salaries_df["Bonuses/Equity amount"].median(), currency=st.session_state.filter_currency))
+    st.metric(label="Median Years of Experience",
+              value=salaries_df["Years of Experience"].median())
 
 st.dataframe(data=salaries_df, hide_index=True)
 st.caption(f"Record count: {salaries_df.shape[0]}")
