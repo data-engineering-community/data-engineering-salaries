@@ -224,6 +224,37 @@ with col2:
     st.metric(label="Median Years of Experience",
               value=salaries_df["Years of Experience"].median())
 
+
+st.subheader("Career Plan Trends")
+career_df = salaries_df[["Submitted at", "Career plans in the next 3 months?"]].dropna()
+
+# Calculate percentage per quarter
+career_df["Quarter"] = pd.to_datetime(career_df["Submitted at"]).dt.to_period("Q")
+career_quarterly = career_df.groupby([
+    "Quarter",
+    "Career plans in the next 3 months?"
+]).size().reset_index(name="count")
+total_per_quarter = career_quarterly.groupby("Quarter")["count"].transform("sum")
+career_quarterly["percent"] = round(career_quarterly["count"] / total_per_quarter * 100, 2)
+career_quarterly["Quarter"] = career_quarterly["Quarter"].astype(str)
+
+
+career_bar = px.bar(
+    career_quarterly,
+    x="Quarter",
+    y="percent",
+    color="Career plans in the next 3 months?",
+    labels={
+        "Quarter": "Quarter",
+        "percent": "% of Responses",
+        "Career plans in the next 3 months?": "Career Plan"
+    },
+    title="Career plans in the next 3 months? (Quarterly, % of Responses)",
+)
+career_bar.update_layout(barmode="stack")
+career_bar.update_yaxes(range=[0, 100])
+st.plotly_chart(career_bar, use_container_width=True)
+
 st.dataframe(data=salaries_df, hide_index=True)
 st.caption(f"Record count: {salaries_df.shape[0]}")
 
