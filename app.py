@@ -95,6 +95,50 @@ def parse_tech_stack(raw: pd.Series) -> pd.DataFrame:
     return wide
 
 
+CITY_ALIASES = {
+    "sf": "San Francisco", "san francisco": "San Francisco",
+    "nyc": "New York", "ny": "New York", "new york city": "New York", "new york": "New York",
+    "la": "Los Angeles", "los angeles": "Los Angeles",
+    "bangalore": "Bengaluru", "banglore": "Bengaluru", "bengaluru": "Bengaluru",
+    "gurgaon": "Gurugram", "gurugram": "Gurugram",
+}
+US_STATES = {
+    "al": "Alabama", "ak": "Alaska", "az": "Arizona", "ar": "Arkansas",
+    "ca": "California", "co": "Colorado", "ct": "Connecticut", "de": "Delaware",
+    "fl": "Florida", "ga": "Georgia", "hi": "Hawaii", "id": "Idaho",
+    "il": "Illinois", "in": "Indiana", "ia": "Iowa", "ks": "Kansas",
+    "ky": "Kentucky", "la": "Louisiana", "me": "Maine", "md": "Maryland",
+    "ma": "Massachusetts", "mi": "Michigan", "mn": "Minnesota", "ms": "Mississippi",
+    "mo": "Missouri", "mt": "Montana", "ne": "Nebraska", "nv": "Nevada",
+    "nh": "New Hampshire", "nj": "New Jersey", "nm": "New Mexico", "ny": "New York",
+    "nc": "North Carolina", "nd": "North Dakota", "oh": "Ohio", "ok": "Oklahoma",
+    "or": "Oregon", "pa": "Pennsylvania", "ri": "Rhode Island", "sc": "South Carolina",
+    "sd": "South Dakota", "tn": "Tennessee", "tx": "Texas", "ut": "Utah",
+    "vt": "Vermont", "va": "Virginia", "wa": "Washington", "wv": "West Virginia",
+    "wi": "Wisconsin", "wy": "Wyoming", "dc": "District of Columbia",
+}
+STATE_ALIASES = {abbr: name for abbr, name in US_STATES.items()}
+STATE_ALIASES.update({name.lower(): name for name in US_STATES.values()})
+# non-US regions that also appear abbreviated in the data
+STATE_ALIASES.update({
+    "on": "Ontario", "ontario": "Ontario",
+    "bc": "British Columbia", "british columbia": "British Columbia",
+    "nsw": "New South Wales", "new south wales": "New South Wales",
+})
+COUNTRY_ALIASES = {
+    "us": "United States", "usa": "United States", "u.s.": "United States",
+    "u.s.a.": "United States", "united states of america": "United States",
+    "united states": "United States",
+    "uk": "United Kingdom", "u.k.": "United Kingdom", "united kingdom": "United Kingdom",
+}
+
+
+def canonicalize(col: pd.Series, aliases: dict) -> pd.Series:
+    key = col.str.strip().str.lower().str.replace(r'\s+', ' ', regex=True)
+    display = col.groupby(key).transform(lambda s: s.mode().iat[0])
+    return key.map(aliases).fillna(display)
+
+
 salaries_df = load_data(st.secrets["public_gsheets_url"])
 salaries_df = salaries_df[["Submitted at", "Current Job Title", "Other", "Years of Experience", "City", "State", "Country", "Work Arrangement",
                            "Base Salary", "Currency", "Bonuses/Equity amount", "Industry", "Tech Stack", "Career plans in the next 3 months?"]]
@@ -102,6 +146,9 @@ salaries_df.dropna(how="all", inplace=True)
 salaries_df['Submitted at'] = pd.to_datetime(
     salaries_df["Submitted at"]).dt.date
 salaries_df.sort_values(by=["Submitted at"], ascending=False, inplace=True)
+salaries_df["City"] = canonicalize(salaries_df["City"], CITY_ALIASES)
+salaries_df["State"] = canonicalize(salaries_df["State"], STATE_ALIASES)
+salaries_df["Country"] = canonicalize(salaries_df["Country"], COUNTRY_ALIASES)
 tech_stack_df = parse_tech_stack(salaries_df['Tech Stack'])
 min_yoe = int(salaries_df["Years of Experience"].min())
 max_yoe = int(salaries_df["Years of Experience"].max())
